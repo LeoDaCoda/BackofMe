@@ -1,0 +1,4 @@
+.*
+!.gitignore
+/venv
+test_file_sys
