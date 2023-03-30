@@ -13,6 +13,7 @@ def serialize_local_fs(root_path: str):
 
         pwd = f'{"/".join(parent)}/{curr_dirr}' if len(parent) > 0 else curr_dirr
         paths = os.listdir(pwd)
+        paths = [p for p in paths if p != ".git"]  # removes hidden folders
         files = [f for f in paths if os.path.isfile(f"{pwd}/{f}")]
         dirs = [d for d in paths if os.path.isdir(f"{pwd}/{d}")]
 
