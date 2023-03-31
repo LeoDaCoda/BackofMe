@@ -1,5 +1,5 @@
 import unittest
-from backup import serialize_local_fs
+from backup import serialize_local_fs, serialize_git_tree
 
 
 class MyTestCase(unittest.TestCase):
@@ -55,6 +55,12 @@ class MyTestCase(unittest.TestCase):
 
         # expected_output = (["file5.txt"], ["Desktop", "Downloads"])
         self.assert_nested_file_sys_equal(expected_output, serialize_local_fs(self.root))
+
+    def test_serialized_git_tree(self):
+        self.assert_nested_file_sys_equal(serialize_local_fs(self.root), serialize_git_tree())
+
+    def test_serialized_git_tree_invalid_path(self):
+        self.assertEqual({}, serialize_git_tree("DNE"))
 
 
 if __name__ == '__main__':
