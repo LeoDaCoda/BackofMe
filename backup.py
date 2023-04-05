@@ -28,7 +28,7 @@ class GitRapper:
         file_system = {}
         return serialize_recursive(file_system, [], self.root)
 
-    def serialize_git_tree(self):
+    def serialize_git_tree(self) -> dict:
         tree = self.repo.tree()
 
         def serialize_recursive(sub_fs: dict, tree):
@@ -37,6 +37,10 @@ class GitRapper:
             return sub_fs
 
         return serialize_recursive({}, tree)
+
+    def get_file_versions(self, path: str) -> tuple:
+        commits = self.repo.iter_commits('--all', max_count=100, paths=path)
+        return tuple(str(c) for c in commits)
 
 
 

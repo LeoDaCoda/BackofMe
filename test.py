@@ -9,6 +9,9 @@ class MyTestCase(unittest.TestCase):
     def setUp(self):
         self.root = "test_file_sys"
         self.repo_rapper = GitRapper(self.root)
+        self.test_file = "Downloads/dir1/file2.txt"
+        self.test_file_commits = ('480ddf7f381374b11d3e245690023b6f76f4d987','a8ed8bb567dff4de249781ed26cf7e6a34c74b04',
+                                  'f886763b622828dd57b01f815b10464cddcf8be6')
         self.expected_tree = {
             "files": ["file5.txt"],
             "directories": {
@@ -64,6 +67,12 @@ class MyTestCase(unittest.TestCase):
 
     def test_serialized_git_tree(self):
         self.assert_nested_file_sys_equal(self.expected_tree, self.repo_rapper.serialize_git_tree())
+
+    def test_get_file_version_invalid(self):
+        self.assertCountEqual((), self.repo_rapper.get_file_versions("DNE"))
+    def test_get_file_version(self):
+        self.assertCountEqual(self.test_file_commits, self.repo_rapper.get_file_versions(self.test_file))
+
 
 
 if __name__ == '__main__':
