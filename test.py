@@ -10,8 +10,12 @@ class MyTestCase(unittest.TestCase):
         self.root = "test_file_sys"
         self.repo_rapper = GitRapper(self.root)
         self.test_file = "Downloads/dir1/file2.txt"
-        self.test_file_commits = ('480ddf7f381374b11d3e245690023b6f76f4d987','a8ed8bb567dff4de249781ed26cf7e6a34c74b04',
-                                  'f886763b622828dd57b01f815b10464cddcf8be6')
+        self.test_file_commits = {
+            '480ddf7f381374b11d3e245690023b6f76f4d987': 'random thoughts this should be my diary\n\nmonday - got a '
+                                                        'free chinese meal',
+            'a8ed8bb567dff4de249781ed26cf7e6a34c74b04': 'random thoughts this should be my diary\n',
+            'f886763b622828dd57b01f815b10464cddcf8be6': 'pa$$ord'
+        }
         self.expected_tree = {
             "files": ["file5.txt"],
             "directories": {
@@ -35,7 +39,7 @@ class MyTestCase(unittest.TestCase):
         self.assertRaises(FileNotFoundError, GitRapper, "Path DNE")
 
     def test_error_raised_invalid_repo_path(self):
-        self.assertRaises(git.InvalidGitRepositoryError, GitRapper, self.root+"/Desktop")
+        self.assertRaises(git.InvalidGitRepositoryError, GitRapper, self.root + "/Desktop")
 
     def assert_nested_file_sys_equal(self, d1: dict, d2: dict):
         d1_keys = list(d1.keys())
@@ -45,7 +49,7 @@ class MyTestCase(unittest.TestCase):
         for k in d1_keys:
             if isinstance(d1[k], list):
                 self.assertCountEqual(d1[k], d2[k])
-            else: # if not a list then a nested dictionary
+            else:  # if not a list then a nested dictionary
                 self.assert_nested_file_sys_equal(d1[k], d2[k])
 
     def test_assert_nested_dict_equal_pass(self):
@@ -70,9 +74,14 @@ class MyTestCase(unittest.TestCase):
 
     def test_get_file_version_invalid(self):
         self.assertCountEqual((), self.repo_rapper.get_file_versions("DNE"))
-    def test_get_file_version(self):
-        self.assertCountEqual(self.test_file_commits, self.repo_rapper.get_file_versions(self.test_file))
 
+    def test_get_file_version(self):
+        self.assertCountEqual(tuple(self.test_file_commits), self.repo_rapper.get_file_versions(self.test_file))
+
+    def test_cat_file_version(self):
+        for commit_id, text in self.test_file_commits.items():
+            with self.subTest():
+                self.assertEqual(text, self.repo_rapper.cat_file_version(self.test_file, commit_id))
 
 
 if __name__ == '__main__':

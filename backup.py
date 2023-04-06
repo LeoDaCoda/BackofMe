@@ -2,6 +2,7 @@ import os
 from git import Repo, NoSuchPathError
 
 
+
 class GitRapper:
     def __init__(self, root='test_file_sys'):
         self.root = root
@@ -42,6 +43,9 @@ class GitRapper:
         commits = self.repo.iter_commits('--all', max_count=100, paths=path)
         return tuple(str(c) for c in commits)
 
+    def cat_file_version(self, path: str, commit_id: str) -> str:
+        target = self.repo.commit(commit_id).tree[path]
+        return target.data_stream.read().decode()
 
 
 
