@@ -108,11 +108,11 @@ elif args.command == 'view_git':
 elif args.command == 'view_commits':
     try:
         commits = backup.get_commit_history(args.path)
+        delimiter = '-' * 60
         for commit in commits:
             metadata = format_commit_metadata(commit)
-            for line in metadata:
-                print(line)
-            print()
+            print('\n'.join(metadata))
+            print(delimiter)
     except ValueError as e:
         print(f"Error: {str(e)}")
 
