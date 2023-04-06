@@ -47,6 +47,17 @@ class GitRapper:
         target = self.repo.commit(commit_id).tree[path]
         return target.data_stream.read().decode()
 
+    def add_changes_to_commit(self, paths: list) -> bool:
+        if not isinstance(paths, list):
+            raise TypeError("Expected a list")
+        try:
+            self.repo.index.add(paths)
+        except FileNotFoundError:
+            return False
+        return True
+
+    def save_state(self, commit_message):
+        self.repo.index.commit(commit_message)
 
 
 
