@@ -2,8 +2,16 @@ import os
 import shutil
 from git import InvalidGitRepositoryError, Repo, NoSuchPathError, GitCommandError
 
+
 class Backup:
     def __init__(self, root=None):
+        """
+        Initialize a Backup object, setting the root directory and creating a Repo object if it's a valid git repository.
+
+        :param root: The root directory for the backup operations. Defaults to the current working directory.
+        :type root: str, optional
+        :raises FileNotFoundError: If the specified root directory doesn't exist.
+        """
         if not root:
             self.root = os.getcwd()
         else:
@@ -15,8 +23,13 @@ class Backup:
         except InvalidGitRepositoryError:
             self.repo = None
 
-
     def init_git_repo(self):
+        """
+        Initialize a new git repository in the root directory if it's not already a git repository.
+
+        :return: A message indicating the result of the operation.
+        :rtype: str
+        """
         if self.repo:
             return "This directory is already a git repository."
         else:
@@ -27,8 +40,13 @@ class Backup:
             except GitCommandError:
                 return "An error occurred while initializing the git repository."
 
-
     def get_serialized_local(self):
+        """
+        Serialize the local file system, excluding hidden folders.
+
+        :return: A dictionary representing the serialized file system.
+        :rtype: dict
+        """
         def serialize_recursive(sub_fs: dict, parent: list, curr_dir: str):
             pwd = f'{"/".join(parent)}/{curr_dir}' if len(parent) > 0 else curr_dir
             paths = os.listdir(pwd)
@@ -46,6 +64,12 @@ class Backup:
         return serialize_recursive(file_system, [], self.root)
 
     def get_serialized_git(self):
+        """
+        Serialize the git repository file system.
+
+        :return: A dictionary representing the serialized git repository, or an error message if the directory is not a git repository.
+        :rtype: dict or str
+        """
         if not self.repo:
             return "This directory is not a git repository."
 
@@ -70,8 +94,16 @@ class Backup:
         serialize_recursive(serialized_git[f"{commit.hexsha} ({commit.author.name} - {commit.author.email})"], tree, commit.hexsha)
 
         return serialized_git
-    
+
     def get_commit_history(self, path):
+        """
+        Get the commit history for the specified file or directory.
+
+        :param path: The path to the file or directory.
+        :type path: str
+        :return: A list of commits, or an error message if the directory is not a git repository or if an error occurs while retrieving commit history.
+        :rtype: list or str
+        """
         if not self.repo:
             return "This directory is not a git repository."
 
@@ -84,6 +116,14 @@ class Backup:
             return "An error occurred while retrieving commit history."
 
     def restore_commit(self, commit_id):
+        """
+        Restore the file system to the specified commit.
+
+        :param commit_id: The commit ID to restore.
+        :type commit_id: str
+        :return: A message indicating the result of the operation.
+        :rtype: str
+        """
         if not self.repo:
             return "This directory is not a git repository."
 
