@@ -1,5 +1,6 @@
 import os
 from git import Repo, NoSuchPathError
+import sys
 
 
 
@@ -9,6 +10,11 @@ class GitRapper:
         if not os.path.exists(self.root):
             raise FileNotFoundError
         self.repo = Repo(self.root)  # will raise git.NoSuchPathError if given invalid path
+        # self.remote = self.repo.re
+        # if self.repo.remotes:
+        #     self.remote = None
+        # else:
+        #     self.remote = self.repo.
 
     def serialize_local_fs(self):
         def serialize_recursive(sub_fs: dict, parent: list, curr_dirr: str):
@@ -58,6 +64,7 @@ class GitRapper:
 
     def save_state(self, commit_message):
         self.repo.index.commit(commit_message)
+
 
 
 

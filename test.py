@@ -7,6 +7,7 @@ from backup import GitRapper
 class MyTestCase(unittest.TestCase):
 
     def setUp(self):
+        self.debug=True
         self.root = "test_file_sys"
         self.repo_rapper = GitRapper(self.root)
         self.test_file = "Downloads/dir1/file2.txt"
@@ -82,6 +83,12 @@ class MyTestCase(unittest.TestCase):
         for commit_id, text in self.test_file_commits.items():
             with self.subTest():
                 self.assertEqual(text, self.repo_rapper.cat_file_version(self.test_file, commit_id))
+
+    # def test_mount_file_sys(self):
+    #     if self.debug:
+    #         return
+    #     self.assertEqual("hello ord", self.repo_rapper.mount_remote(1, 1))
+
 
 
 if __name__ == '__main__':
