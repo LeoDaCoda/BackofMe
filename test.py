@@ -2,7 +2,56 @@ import unittest
 
 import git
 from backup import Backup
+import os
 
+import os
+
+class FileIOHelper:
+    def __init__(self, string_to_add):
+        self.string_to_add = string_to_add
+
+    def add_string_to_file(self, file_path):
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            # Create the file if it does not exist
+            open(file_path, 'w').close()
+
+        # Open the file in append mode and add the string to the end
+        with open(file_path, 'a') as file:
+            file.write('\n' + self.string_to_add)
+
+    def delete_last_line(self, file_path):
+        # Open the original file and read all its lines
+        with open(file_path, 'r') as file:
+            lines = file.readlines()
+
+        # Ensure the last line is the string added by add_string_to_file
+        assert lines[-1].strip() == self.string_to_add, "The last line is not the string added by add_string_to_file."
+
+        # Remove the last line and the newline character added by add_string_to_file
+        lines = lines[:-1]
+        if lines[-1].endswith('\n'):
+            lines[-1] = lines[-1][:-1]
+
+        # Write all the lines except for the last line to the file
+        with open(file_path, 'w') as file:
+            for line in lines:
+                file.write(line)
+
+
+def delete_last_line(file_path):
+    # Open the original file and read all its lines
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    # Remove the last line if it was added by the add_string_to_file function
+    if lines[-1].strip() == 'Hello, world!':
+        lines = lines[:-1]
+
+    # Write all the lines except for the last line to the file
+    with open(file_path, 'w') as file:
+        for line in lines:
+            file.write(line)
 
 class MyTestCase(unittest.TestCase):
 
@@ -36,6 +85,49 @@ class MyTestCase(unittest.TestCase):
                 }
             }
         }
+        self.fileIOtestfile = ".test"
+
+    def test_add_string_to_existing_file(self):
+        # Create the test file with initial contents
+        first = "Initial contents\n"
+        with open(self.fileIOtestfile, "w") as file:
+            file.write(first)
+
+        # Call the add_string_to_file method to add a string to the file
+        ch = "A"*10
+        helper = FileIOHelper(ch)
+        helper.add_string_to_file(self.fileIOtestfile)
+
+        # Verify that the file now has the expected contents
+        with open(self.fileIOtestfile, "r") as file:
+            contents = file.read()
+            expected_contents = first + '\n' + ch
+            self.assertEqual(contents, expected_contents)
+
+        os.remove(self.fileIOtestfile)
+
+    def test_delete_last_line(self):
+        string_to_add = "This is a test string."
+        helper = FileIOHelper(string_to_add)
+
+        # First add a string to the file
+        helper.add_string_to_file(self.fileIOtestfile)
+
+        # Check that the file now contains the string
+        with open(self.fileIOtestfile, 'r') as file:
+            contents = file.read()
+        self.assertIn(string_to_add, contents)
+
+        # Now delete the last line
+        helper.delete_last_line(self.fileIOtestfile)
+
+        # Check that the file no longer contains the string
+        with open(self.fileIOtestfile, 'r') as file:
+            contents = file.read()
+        self.assertNotIn(string_to_add, contents)
+
+        # Clean up the test file
+        os.remove(self.fileIOtestfile)
 
     def test_invalid_root_path(self):
         self.assertRaises(FileNotFoundError, Backup, "Path DNE")  # Test the Backup class constructor on assertRaises
@@ -90,6 +182,27 @@ class MyTestCase(unittest.TestCase):
         for commit_id, text in self.test_file_commits.items():
             with self.subTest():
                 self.assertEqual(text, self.repo_rapper.cat_file_version(self.test_file, commit_id))
+
+    def test_unstanged_changes_no_changes(self):
+        self.assertCountEqual([], self.repo_rapper.get_unstaged_changes())
+
+    def test_unstanged_changes_1_changes(self):
+        helper = FileIOHelper("A"*4)
+        helper.add_string_to_file(f'{self.root}/{self.test_file}')
+        self.assertCountEqual([self.test_file], self.repo_rapper.get_unstaged_changes())
+        helper.delete_last_line(f'{self.root}/{self.test_file}')
+        self.assertCountEqual([], self.repo_rapper.get_unstaged_changes())
+
+    def test_get_untracked_files_no_new_file(self):
+        self.assertCountEqual([], self.repo_rapper.get_untracked_files())
+
+    def test_get_untracked_files_new_file(self):
+        with open(f'{self.root}/{self.fileIOtestfile}', 'w') as f:
+            pass
+        self.assertCountEqual([f'{self.fileIOtestfile}'], self.repo_rapper.get_untracked_files())
+        os.remove(f'{self.root}/{self.fileIOtestfile}')
+        self.assertCountEqual([], self.repo_rapper.get_untracked_files())
+
 
     # def test_mount_file_sys(self):
     #     if self.debug:
