@@ -201,6 +201,7 @@ class Backup:
 
         self.init_git_repo()
         self.remote = self.repo.create_remote('usb', self.remote_path)
+        self.remote.fetch()
 
         # Create and checkout a local "master" branch that tracks "origin/master"
         master = self.repo.create_head('master', 'usb/master')
