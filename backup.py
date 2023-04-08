@@ -4,13 +4,14 @@ from git import InvalidGitRepositoryError, Repo, NoSuchPathError, GitCommandErro
 
 
 class Backup:
-    def __init__(self, root=None):
+    def __init__(self, root='test_file_sys', remote_path=None):
         """
         Initialize a Backup object, setting the root directory and creating a Repo object if it's a valid git repository.
         :param root: The root directory for the backup operations. Defaults to the current working directory.
         :type root: str, optional
         :raises FileNotFoundError: If the specified root directory doesn't exist.
         """
+        self.remote_path = remote_path
         if not root:
             self.root = os.getcwd()
         else:
@@ -40,6 +41,9 @@ class Backup:
                 return f"A new git repository has been initialized at {self.root}."
             except GitCommandError:
                 return "An error occurred while initializing the git repository."
+
+    def add_remote(self):
+        pass
 
     def get_serialized_local(self):
         """
@@ -182,6 +186,31 @@ class Backup:
         """Returns a list of file paths of blobs that changes since last commit"""
         return [f.a_path for f in self.repo.index.diff(None)]
 
-    def get_untracked_files(self):
+    def get_untracked_files(self) -> list:
         """Returns a list of untracked files"""
         return self.repo.untracked_files
+
+    def rebuild_local_git(self):
+        """
+        This is a Git on the Fly operation. If user choose to delete their local .git after backup
+        this is how they get it back. All changes and uncommitted files are stashed.
+        See https://stackoverflow.com/questions/6246907/can-deleted-git-be-restored
+        """
+        assert self.remote_path is not None
+        assert self.repo is None
+
+        self.init_git_repo()
+        self.remote = self.repo.create_remote('usb', self.remote_path)
+
+        # Create and checkout a local "master" branch that tracks "origin/master"
+        master = self.repo.create_head('master', 'origin/master')
+
+        # Set the upstream tracking information for the master branch
+        master.set_tracking_branch(self.remote.refs.master)
+
+        # Reset the index and working tree to match the "master" branch
+        master.git.reset('HEAD', '.')
+
+        # Rebase the "master" branch with the "--autostash" option
+        self.repo.git.rebase('--autostash')
+
