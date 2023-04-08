@@ -203,6 +203,26 @@ class MyTestCase(unittest.TestCase):
         os.remove(f'{self.root}/{self.fileIOtestfile}')
         self.assertCountEqual([], self.repo_rapper.get_untracked_files())
 
+    def test_rebuild_local_git(self):
+        if not self.debug:
+            old_tree = self.repo_rapper.get_serialized_local()
+            unstaged_files = self.repo_rapper.get_unstaged_changes()
+            untracked_files = self.repo_rapper.get_untracked_files()
+            try:
+                os.remove(f'{self.root}/.git')
+            except FileNotFoundError:
+                print("test could not be ran")
+                self.assertTrue(False, "Test did not run. No .git/")
+
+            self.repo_rapper.rebuild_local_git()
+
+            self.assertCountEqual(old_tree, self.repo_rapper.get_serialized_local())
+            self.assertCountEqual(unstaged_files, self.repo_rapper.get_unstaged_changes())
+            self.assertCountEqual(untracked_files, self.repo_rapper.get_untracked_files())
+        else:
+            self.assertTrue(False, "No test Debug is equal to true")
+
+
 
     # def test_mount_file_sys(self):
     #     if self.debug:
