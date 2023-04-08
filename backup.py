@@ -173,7 +173,15 @@ class Backup:
         assert self.remote is not None
         self.remote.push()
 
-    def pull_to_remote(self):
-        assert self.remote is not None
-        self.remote.pull()
+    # def pull_to_remote(self):
+    #     assert self.remote is not None
+    #     self.remote.pull()
+    #
 
+    def get_unstaged_changes(self) -> list:
+        """Returns a list of file paths of blobs that changes since last commit"""
+        return [f.a_path for f in self.repo.index.diff(None)]
+
+    def get_untracked_files(self):
+        """Returns a list of untracked files"""
+        return self.repo.untracked_files
