@@ -40,6 +40,10 @@ class MyTestCase(unittest.TestCase):
     def test_invalid_root_path(self):
         self.assertRaises(FileNotFoundError, Backup, "Path DNE")  # Test the Backup class constructor on assertRaises
 
+    def test_no_remote(self):
+        if self.debug: # if debug is True no remote is configured
+            self.assertIsNone(self.repo_rapper.remote)
+
     def test_error_raised_invalid_repo_path(self):
         # self.assertRaises(git.InvalidGitRepositoryError, GitRapper, self.root + "/Desktop")
         invalid_repo = Backup(self.root + "/Desktop")

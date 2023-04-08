@@ -19,8 +19,11 @@ class Backup:
             raise FileNotFoundError
         try:
             self.repo = Repo(self.root)  # will raise git.NoSuchPathError if given invalid path
+            self.remote = self.repo.remote('usb')
         except InvalidGitRepositoryError:
             self.repo = None
+        except ValueError:
+            self.remote = None
 
     def init_git_repo(self):
         """
@@ -165,4 +168,12 @@ class Backup:
     def get_file_versions(self, path: str) -> tuple:
         commits = self.repo.iter_commits('--all', max_count=100, paths=path)
         return tuple(str(c) for c in commits)
+
+    def push_to_remote(self):
+        assert self.remote is not None
+        self.remote.push()
+
+    def pull_to_remote(self):
+        assert self.remote is not None
+        self.remote.pull()
 
