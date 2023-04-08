@@ -210,7 +210,7 @@ class Backup:
         master.set_tracking_branch(self.remote.refs.master)
 
         # Reset the index and working tree to match the "master" branch
-        master.git.reset('HEAD', '.')
+        self.repo.git.reset('HEAD', '.')
 
         # Rebase the "master" branch with the "--autostash" option
         self.repo.git.rebase('--autostash')
