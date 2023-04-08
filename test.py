@@ -1,7 +1,7 @@
 import unittest
 
 import git
-from backup import GitRapper
+from backup import Backup
 
 
 class MyTestCase(unittest.TestCase):
@@ -9,7 +9,8 @@ class MyTestCase(unittest.TestCase):
     def setUp(self):
         self.debug=True
         self.root = "test_file_sys"
-        self.repo_rapper = GitRapper(self.root)
+        # self.repo_rapper = GitRapper(self.root)
+        self.repo_rapper = Backup(self.root)
         self.test_file = "Downloads/dir1/file2.txt"
         self.test_file_commits = {
             '480ddf7f381374b11d3e245690023b6f76f4d987': 'random thoughts this should be my diary\n\nmonday - got a '
@@ -37,10 +38,12 @@ class MyTestCase(unittest.TestCase):
         }
 
     def test_invalid_root_path(self):
-        self.assertRaises(FileNotFoundError, GitRapper, "Path DNE")
+        self.assertRaises(FileNotFoundError, Backup, "Path DNE")  # Test the Backup class constructor on assertRaises
 
     def test_error_raised_invalid_repo_path(self):
-        self.assertRaises(git.InvalidGitRepositoryError, GitRapper, self.root + "/Desktop")
+        # self.assertRaises(git.InvalidGitRepositoryError, GitRapper, self.root + "/Desktop")
+        invalid_repo = Backup(self.root + "/Desktop")
+        self.assertEqual(None, invalid_repo.repo)
 
     def assert_nested_file_sys_equal(self, d1: dict, d2: dict):
         d1_keys = list(d1.keys())
@@ -68,7 +71,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_serialized_file_system(self):
         # expected_output = (["file5.txt"], ["Desktop", "Downloads"])
-        self.assert_nested_file_sys_equal(self.expected_tree, self.repo_rapper.serialize_local_fs())
+        self.assert_nested_file_sys_equal(self.expected_tree, self.repo_rapper.get_serialized_local())
 
     def test_serialized_git_tree(self):
         self.assert_nested_file_sys_equal(self.expected_tree, self.repo_rapper.serialize_git_tree())
