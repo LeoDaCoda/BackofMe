@@ -4,10 +4,12 @@ from git import InvalidGitRepositoryError, Repo, NoSuchPathError, GitCommandErro
 
 
 class Backup:
-    def __init__(self, root='test_file_sys', remote_path=None):
+    def __init__(self, root='test_file_sys', remote_path=None, init_git_if_none=False):
         """
         Initialize a Backup object, setting the root directory and creating a Repo object if it's a valid git repository.
         :param root: The root directory for the backup operations. Defaults to the current working directory.
+        :param remote_path: absolute path to the backup location; default = None.
+        :param init_git_if_none: initializes the directory specified by root var if bool = True; default = False
         :type root: str, optional
         :raises FileNotFoundError: If the specified root directory doesn't exist.
         """
@@ -23,7 +25,8 @@ class Backup:
             self.repo = Repo(self.root)  # will raise git.NoSuchPathError if given invalid path
             self.remote = self.repo.remote('usb')
         except InvalidGitRepositoryError:
-            self.init_git_repo()
+            if init_git_if_none:
+                self.init_git_repo()
         except ValueError:
             self.remote = None
 
