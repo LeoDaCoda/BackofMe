@@ -12,6 +12,7 @@ class Backup:
         :raises FileNotFoundError: If the specified root directory doesn't exist.
         """
         self.remote_path = remote_path
+        self.repo = None
         if not root:
             self.root = os.getcwd()
         else:
@@ -22,7 +23,7 @@ class Backup:
             self.repo = Repo(self.root)  # will raise git.NoSuchPathError if given invalid path
             self.remote = self.repo.remote('usb')
         except InvalidGitRepositoryError:
-            self.repo = None
+            self.init_git_repo()
         except ValueError:
             self.remote = None
 
@@ -38,12 +39,22 @@ class Backup:
             try:
                 new_repo = Repo.init(self.root)
                 self.repo = new_repo  # Update self.repo with the newly created repository
-                return f"A new git repository has been initialized at {self.root}."
+                return True
             except GitCommandError:
-                return "An error occurred while initializing the git repository."
+                self.repo = None
+                return False
 
-    def add_remote(self):
-        pass
+    def add_remote(self, remote_path, remote_name='usb'):
+        '''
+        Equivalent to git remote add usb <remote_repo_url>;
+         if self.remote is already set then do nothing
+        :param remote_path: a path to an existing remote
+        :param remote_name: default to usb
+        :return: None
+        '''
+        assert self.remote is None
+        self.remote_path = remote_path
+        self.remote = self.repo.create_remote(remote_name, self.remote_path)
 
     def get_serialized_local(self):
         """

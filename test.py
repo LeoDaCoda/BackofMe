@@ -1,10 +1,8 @@
 import unittest
-
 import git
 from backup import Backup
 import os
-
-import os
+import shutil
 
 class FileIOHelper:
     def __init__(self, string_to_add):
@@ -56,10 +54,21 @@ def delete_last_line(file_path):
 class MyTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.debug=True
+        self.debug=False
         self.root = "test_file_sys"
+        self.test_file_sys = "TEST_FILE_SYS"
+        self.remote_path = '.remote'
+        try:
+            os.mkdir(self.remote_path)
+        except FileExistsError:
+            print(f"Please delete temporary directory {self.remote_path}")
+        # Create a temporary directory to use for testing
+        try:
+            shutil.copytree(self.root, self.test_file_sys)
+        except FileExistsError:
+            print(f"Please delete temporary directory {self.test_file_sys}")
         # self.repo_rapper = GitRapper(self.root)
-        self.repo_rapper = Backup(self.root)
+        self.repo_rapper = Backup(self.test_file_sys)
         self.test_file = "Downloads/dir1/file2.txt"
         self.test_file_commits = {
             '480ddf7f381374b11d3e245690023b6f76f4d987': 'random thoughts this should be my diary\n\nmonday - got a '
@@ -86,6 +95,12 @@ class MyTestCase(unittest.TestCase):
             }
         }
         self.fileIOtestfile = ".test"
+        self.gotf = True
+
+    def tearDown(self) -> None:
+        print("Don!!!!!!")
+        shutil.rmtree(self.test_file_sys)
+        shutil.rmtree(self.remote_path)
 
     def test_add_string_to_existing_file(self):
         # Create the test file with initial contents
@@ -138,7 +153,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_error_raised_invalid_repo_path(self):
         # self.assertRaises(git.InvalidGitRepositoryError, GitRapper, self.root + "/Desktop")
-        invalid_repo = Backup(self.root + "/Desktop")
+        invalid_repo = Backup(self.test_file_sys + "/Desktop")
         self.assertEqual(None, invalid_repo.repo)
 
     def assert_nested_file_sys_equal(self, d1: dict, d2: dict):
@@ -188,28 +203,31 @@ class MyTestCase(unittest.TestCase):
 
     def test_unstanged_changes_1_changes(self):
         helper = FileIOHelper("A"*4)
-        helper.add_string_to_file(f'{self.root}/{self.test_file}')
+        helper.add_string_to_file(f'{self.test_file_sys}/{self.test_file}')
         self.assertCountEqual([self.test_file], self.repo_rapper.get_unstaged_changes())
-        helper.delete_last_line(f'{self.root}/{self.test_file}')
+        helper.delete_last_line(f'{self.test_file_sys}/{self.test_file}')
         self.assertCountEqual([], self.repo_rapper.get_unstaged_changes())
 
     def test_get_untracked_files_no_new_file(self):
         self.assertCountEqual([], self.repo_rapper.get_untracked_files())
 
     def test_get_untracked_files_new_file(self):
-        with open(f'{self.root}/{self.fileIOtestfile}', 'w') as f:
+        with open(f'{self.test_file_sys}/{self.fileIOtestfile}', 'w') as f:
             pass
         self.assertCountEqual([f'{self.fileIOtestfile}'], self.repo_rapper.get_untracked_files())
-        os.remove(f'{self.root}/{self.fileIOtestfile}')
+        os.remove(f'{self.test_file_sys}/{self.fileIOtestfile}')
         self.assertCountEqual([], self.repo_rapper.get_untracked_files())
 
     def test_rebuild_local_git(self):
-        if not self.debug:
+        if self.gotf:
+            self.repo_rapper = Backup(self.test_file_sys, remote_path=self.remote_path)
+            self.repo_rapper.commit("Test commit for GOTF")
+            self.repo_rapper.push_to_remote()
             old_tree = self.repo_rapper.get_serialized_local()
             unstaged_files = self.repo_rapper.get_unstaged_changes()
             untracked_files = self.repo_rapper.get_untracked_files()
             try:
-                os.remove(f'{self.root}/.git')
+                shutil.rmtree(f'{self.root}/.git')
             except FileNotFoundError:
                 print("test could not be ran")
                 self.assertTrue(False, "Test did not run. No .git/")
@@ -220,7 +238,7 @@ class MyTestCase(unittest.TestCase):
             self.assertCountEqual(unstaged_files, self.repo_rapper.get_unstaged_changes())
             self.assertCountEqual(untracked_files, self.repo_rapper.get_untracked_files())
         else:
-            self.assertTrue(False, "No test Debug is equal to true")
+            self.assertTrue(False, "No test GOTF is equal to false")
 
 
 
@@ -233,3 +251,4 @@ class MyTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
