@@ -241,6 +241,20 @@ class MyTestCase(unittest.TestCase):
         else:
             self.assertTrue(False, "No test GOTF is equal to false")
 
+    def test_rebuild_local_git_unstaged(self):
+        helper = FileIOHelper("A" * 4)
+        helper.add_string_to_file(f'{self.test_file_sys}/{self.test_file}')
+        with self.subTest():
+            self.test_rebuild_local_git()
+
+    def test_rebuild_git_untracked(self):
+        test_file = f"{self.test_file_sys}/test_rebuild_git_untracked.txt"
+        with open(test_file, 'w') as f:
+            f.close()
+        with self.subTest():
+            self.test_rebuild_local_git()
+
+
     # def test_mount_file_sys(self):
     #     if self.debug:
     #         return
