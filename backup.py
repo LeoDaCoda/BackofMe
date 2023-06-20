@@ -210,6 +210,7 @@ class Backup:
     def delete_local_git(self):
         try:
             shutil.rmtree(f"{self.root}/.git")
+            self.repo = None
             return True
         except FileNotFoundError:
             print("Error .git/ already deleted")
@@ -219,7 +220,7 @@ class Backup:
         """
         This is a Git on the Fly operation. If user choose to delete their local .git after backup
         this is how they get it back. All changes and uncommitted files are stashed.
-        See https://stackoverflow.com/questions/6246907/can-deleted-git-be-restored
+        See https://stackoverflow.com/questions/624690git7/can-deleted-git-be-restored
         """
         assert self.remote_path is not None
         # assert self.repo is None

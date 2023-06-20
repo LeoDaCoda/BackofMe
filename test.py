@@ -221,28 +221,25 @@ class MyTestCase(unittest.TestCase):
         os.remove(f'{self.test_file_sys}/{self.fileIOtestfile}')
         self.assertCountEqual([], self.repo_rapper.get_untracked_files())
 
-    # def test_rebuild_local_git(self):
-    #     if self.gotf:
-    #         # self.repo_rapper = Backup(self.test_file_sys, remote_path=self.remote_path)
-    #         self.repo_rapper.add_remote(os.path.abspath(self.remote_path), init_if_not=True)
-    #         self.repo_rapper.commit("Test commit for GOTF")
-    #         self.repo_rapper.push_to_remote()
-    #         old_tree = self.repo_rapper.get_serialized_local()
-    #         unstaged_files = self.repo_rapper.get_unstaged_changes()
-    #         untracked_files = self.repo_rapper.get_untracked_files()
-    #         try:
-    #             shutil.rmtree(f'{self.test_file_sys}/.git')
-    #         except FileNotFoundError:
-    #             print("test could not be ran")
-    #             self.assertTrue(False, "Test did not run. No .git/")
-    #
-    #         self.repo_rapper.rebuild_local_git()
-    #
-    #         self.assertCountEqual(old_tree, self.repo_rapper.get_serialized_local())
-    #         self.assertCountEqual(unstaged_files, self.repo_rapper.get_unstaged_changes())
-    #         self.assertCountEqual(untracked_files, self.repo_rapper.get_untracked_files())
-    #     else:
-    #         self.assertTrue(False, "No test GOTF is equal to false")
+    def test_rebuild_local_git(self):
+        if self.gotf:
+            # self.repo_rapper = Backup(self.test_file_sys, remote_path=self.remote_path)
+            self.repo_rapper.add_remote(os.path.abspath(self.remote_path), init_if_not=True)
+            self.repo_rapper.commit("Test commit for GOTF")
+            self.repo_rapper.push_to_remote()
+            old_tree = self.repo_rapper.get_serialized_local()
+            unstaged_files = self.repo_rapper.get_unstaged_changes()
+            untracked_files = self.repo_rapper.get_untracked_files()
+            if not self.repo_rapper.delete_local_git():
+                self.assertTrue(False, "Test did not run. No .git/")
+
+            self.repo_rapper.rebuild_local_git()
+
+            self.assertCountEqual(old_tree, self.repo_rapper.get_serialized_local())
+            self.assertCountEqual(unstaged_files, self.repo_rapper.get_unstaged_changes())
+            self.assertCountEqual(untracked_files, self.repo_rapper.get_untracked_files())
+        else:
+            self.assertTrue(False, "No test GOTF is equal to false")
 
     # def test_mount_file_sys(self):
     #     if self.debug:
@@ -255,8 +252,10 @@ class MyTestCase(unittest.TestCase):
         result = self.repo_rapper.delete_local_git()
         if os.path.exists(f"{self.test_file_sys}/.git"):
             self.assertTrue(not result, "wrong return value")
+            self.assertTrue(False, f"{self.test_file_sys}/.git not deleted!")
         else:
             self.assertTrue(result, "wrong return value")
+            self.assertEqual(None, self.repo_rapper.repo)
 
     def test_delete_git_already_deleted(self):
         try:
