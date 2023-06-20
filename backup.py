@@ -207,6 +207,14 @@ class Backup:
         """Returns a list of untracked files"""
         return self.repo.untracked_files
 
+    def delete_local_git(self):
+        try:
+            shutil.rmtree(f"{self.root}/.git")
+            return True
+        except FileNotFoundError:
+            print("Error .git/ already deleted")
+            return False
+
     def rebuild_local_git(self):
         """
         This is a Git on the Fly operation. If user choose to delete their local .git after backup
