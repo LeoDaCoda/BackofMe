@@ -47,15 +47,18 @@ class Backup:
                 self.repo = None
                 return False
 
-    def add_remote(self, remote_path, remote_name='usb'):
+    def add_remote(self, remote_path, remote_name='usb', init_if_not=False):
         '''
         Equivalent to git remote add usb <remote_repo_url>;
          if self.remote is already set then do nothing
         :param remote_path: a path to an existing remote
         :param remote_name: default to usb
+        :param init_if_not: initializes a bare repo if True; default = False
         :return: None
         '''
         assert self.remote is None
+        if init_if_not:
+            self.repo.init(remote_path, bare=True)
         self.remote_path = remote_path
         self.remote = self.repo.create_remote(remote_name, self.remote_path)
 
@@ -189,7 +192,7 @@ class Backup:
 
     def push_to_remote(self):
         assert self.remote is not None
-        self.remote.push()
+        self.remote.push(refspec='HEAD:master')
 
     # def pull_to_remote(self):
     #     assert self.remote is not None
@@ -211,7 +214,7 @@ class Backup:
         See https://stackoverflow.com/questions/6246907/can-deleted-git-be-restored
         """
         assert self.remote_path is not None
-        assert self.repo is None
+        # assert self.repo is None
 
         self.init_git_repo()
         self.remote = self.repo.create_remote('usb', self.remote_path)

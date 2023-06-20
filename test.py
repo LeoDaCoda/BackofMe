@@ -61,14 +61,17 @@ class MyTestCase(unittest.TestCase):
         try:
             os.mkdir(self.remote_path)
         except FileExistsError:
-            print(f"Please delete temporary directory {self.remote_path}")
+            shutil.rmtree(self.remote_path)
+            print(f"Deleted temporary directory {self.remote_path}")
         # Create a temporary directory to use for testing
         try:
             shutil.copytree(self.root, self.test_file_sys)
         except FileExistsError:
+            shutil.rmtree(self.test_file_sys)
+            shutil.copytree(self.root, self.test_file_sys)
             print(f"Please delete temporary directory {self.test_file_sys}")
         # self.repo_rapper = GitRapper(self.root)
-        self.repo_rapper = Backup(self.test_file_sys)
+        self.repo_rapper = Backup(self.test_file_sys, init_git_if_none=True)
         self.test_file = "Downloads/dir1/file2.txt"
         self.test_file_commits = {
             '480ddf7f381374b11d3e245690023b6f76f4d987': 'random thoughts this should be my diary\n\nmonday - got a '
@@ -220,14 +223,15 @@ class MyTestCase(unittest.TestCase):
 
     def test_rebuild_local_git(self):
         if self.gotf:
-            self.repo_rapper = Backup(self.test_file_sys, remote_path=self.remote_path)
+            # self.repo_rapper = Backup(self.test_file_sys, remote_path=self.remote_path)
+            self.repo_rapper.add_remote(os.path.abspath(self.remote_path), init_if_not=True)
             self.repo_rapper.commit("Test commit for GOTF")
             self.repo_rapper.push_to_remote()
             old_tree = self.repo_rapper.get_serialized_local()
             unstaged_files = self.repo_rapper.get_unstaged_changes()
             untracked_files = self.repo_rapper.get_untracked_files()
             try:
-                shutil.rmtree(f'{self.root}/.git')
+                shutil.rmtree(f'{self.test_file_sys}/.git')
             except FileNotFoundError:
                 print("test could not be ran")
                 self.assertTrue(False, "Test did not run. No .git/")
@@ -239,8 +243,6 @@ class MyTestCase(unittest.TestCase):
             self.assertCountEqual(untracked_files, self.repo_rapper.get_untracked_files())
         else:
             self.assertTrue(False, "No test GOTF is equal to false")
-
-
 
     # def test_mount_file_sys(self):
     #     if self.debug:
